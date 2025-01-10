@@ -6,6 +6,12 @@ const aiResponseElement = document.getElementById('aiResponse');
 // OpenAI API密钥（请替换为你的API密钥）
 const OPENAI_API_KEY = "YOUR_API_KEY_HERE";
 
+// 获取HTML元素
+const stopRecordingBtn = document.createElement('button');
+stopRecordingBtn.textContent = '🛑 结束录音';
+stopRecordingBtn.style.display = 'none';
+document.body.appendChild(stopRecordingBtn);
+
 // 语音识别与文本转换
 function startRecording() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -15,6 +21,7 @@ function startRecording() {
     // 更新按钮状态
     startRecordingBtn.textContent = '🎙️ 正在录音...';
     startRecordingBtn.disabled = true;
+    stopRecordingBtn.style.display = 'inline-block';
     
     recognition.onresult = async (event) => {
         const userSpeech = event.results[0][0].transcript;
@@ -30,6 +37,7 @@ function startRecording() {
         // 恢复按钮状态
         startRecordingBtn.textContent = '🎙️ 开始录音';
         startRecordingBtn.disabled = false;
+        stopRecordingBtn.style.display = 'none';
     };
 
     recognition.onerror = (error) => {
@@ -37,6 +45,14 @@ function startRecording() {
         console.error(error);
         startRecordingBtn.textContent = '🎙️ 开始录音';
         startRecordingBtn.disabled = false;
+        stopRecordingBtn.style.display = 'none';
+    };
+
+    stopRecordingBtn.onclick = () => {
+        recognition.stop();
+        startRecordingBtn.textContent = '🎙️ 开始录音';
+        startRecordingBtn.disabled = false;
+        stopRecordingBtn.style.display = 'none';
     };
 }
 
