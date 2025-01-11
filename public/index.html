@@ -9,16 +9,30 @@
 <body>
     <div class="container">
         <h1>AI语音对话助手</h1>
-        
-        <!-- 录音按钮 -->
         <button id="startRecordingBtn">🎙️ 开始录音</button>
-        
-        <!-- 文本展示区域 -->
         <p><strong>用户：</strong> <span id="userInput">等待输入...</span></p>
         <p><strong>AI：</strong> <span id="aiResponse">等待回复...</span></p>
-        
-        <!-- JavaScript文件 -->
-        <script src="script.js"></script>
+        <input id="textInput" type="text" placeholder="请输入你的问题...">
+        <button onclick="sendMessage()">发送</button>
+        <p>AI 回复：<span id="responseText"></span></p>
     </div>
+    <script src="script.js"></script>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById("textInput").value;
+            const responseText = document.getElementById("responseText");
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            });
+            
+            const data = await response.json();
+            responseText.innerText = data.reply;
+        }
+    </script>
 </body>
-</html> 
+</html>
