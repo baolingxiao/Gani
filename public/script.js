@@ -3,7 +3,7 @@ const startRecordingBtn = document.getElementById('startRecordingBtn');
 const userInputElement = document.getElementById('userInput');
 const aiResponseElement = document.getElementById('aiResponse');
 
-// 获取HTML元素
+// 创建停止录音按钮
 const stopRecordingBtn = document.createElement('button');
 stopRecordingBtn.textContent = '🛑 结束录音';
 stopRecordingBtn.style.display = 'none';
@@ -15,7 +15,6 @@ function startRecording() {
     recognition.lang = 'zh-CN'; // 中文语音识别
     recognition.start();
     
-    // 更新按钮状态
     startRecordingBtn.textContent = '🎙️ 正在录音...';
     startRecordingBtn.disabled = true;
     stopRecordingBtn.style.display = 'inline-block';
@@ -24,30 +23,24 @@ function startRecording() {
         const userSpeech = event.results[0][0].transcript;
         userInputElement.innerText = userSpeech;
 
-        // 改为向后端发送请求
-        const aiReply = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: userSpeech })
-        })
-        .then(res => {
-            if (!res.ok){
-                throw new Error("服务器响应异常");
-            }
-            return res.json();
-        })
-        .then(data => data.reply)
-        .catch(error => {
-            console.error("API调用错误：", error);
-            aiResponseElement.innerText= "AI回复出错，请检查网络连接或API密钥。";
-        });
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userSpeech })
+            });
+            if (!response.ok) throw new Error("服务器返回异常");
 
-        aiResponseElement.innerText = aiReply;
-        speakText(aiReply);
-        
-        // 恢复按钮状态
+            const data = await response.json();
+            aiResponseElement.innerText = data.reply;
+            speakText(data.reply);
+        } catch (error) {
+            console.error("API调用错误：", error);
+            aiResponseElement.innerText = "AI回复出错，请检查网络连接或API密钥。";
+        }
+
         startRecordingBtn.textContent = '🎙️ 开始录音';
         startRecordingBtn.disabled = false;
         stopRecordingBtn.style.display = 'none';
@@ -72,92 +65,11 @@ function startRecording() {
 // 语音合成播放
 function speakText(text) {
     const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = 'zh-CN'; // 中文语音
-    speech.rate = 1.0;  // 语速
-    speech.pitch = 1.0; // 音高
+    speech.lang = 'zh-CN';
+    speech.rate = 1.0;
+    speech.pitch = 1.0;
     speechSynthesis.speak(speech);
 }
 
 // 绑定按钮点击事件
-startRecordingBtn.addEventListener('click', startRecording); // 获取HTML元素
-const startRecordingBtn = document.getElementById('startRecordingBtn');
-const userInputElement = document.getElementById('userInput');
-const aiResponseElement = document.getElementById('aiResponse');
-
-// 获取HTML元素
-const stopRecordingBtn = document.createElement('button');
-stopRecordingBtn.textContent = '🛑 结束录音';
-stopRecordingBtn.style.display = 'none';
-document.body.appendChild(stopRecordingBtn);
-
-// 语音识别与文本转换
-function startRecording() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'zh-CN'; // 中文语音识别
-    recognition.start();
-    
-    // 更新按钮状态
-    startRecordingBtn.textContent = '🎙️ 正在录音...';
-    startRecordingBtn.disabled = true;
-    stopRecordingBtn.style.display = 'inline-block';
-    
-    recognition.onresult = async (event) => {
-        const userSpeech = event.results[0][0].transcript;
-        userInputElement.innerText = userSpeech;
-
-        // 改为向后端发送请求
-        const aiReply = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: userSpeech })
-        })
-        .then(res => {
-            if (!res.ok){
-                throw new Error("服务器响应异常");
-            }
-            return res.json();
-        })
-        .then(data => data.reply)
-        .catch(error => {
-            console.error("API调用错误：", error);
-            aiResponseElement.innerText= "AI回复出错，请检查网络连接或API密钥。";
-        });
-
-        aiResponseElement.innerText = aiReply;
-        speakText(aiReply);
-        
-        // 恢复按钮状态
-        startRecordingBtn.textContent = '🎙️ 开始录音';
-        startRecordingBtn.disabled = false;
-        stopRecordingBtn.style.display = 'none';
-    };
-
-    recognition.onerror = (error) => {
-        alert("语音识别出错，请重试！");
-        console.error(error);
-        startRecordingBtn.textContent = '🎙️ 开始录音';
-        startRecordingBtn.disabled = false;
-        stopRecordingBtn.style.display = 'none';
-    };
-
-    stopRecordingBtn.onclick = () => {
-        recognition.stop();
-        startRecordingBtn.textContent = '🎙️ 开始录音';
-        startRecordingBtn.disabled = false;
-        stopRecordingBtn.style.display = 'none';
-    };
-}
-
-// 语音合成播放
-function speakText(text) {
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = 'zh-CN'; // 中文语音
-    speech.rate = 1.0;  // 语速
-    speech.pitch = 1.0; // 音高
-    speechSynthesis.speak(speech);
-}
-
-// 绑定按钮点击事件
-startRecordingBtn.addEventListener('click', startRecording); 
+startRecordingBtn.addEventListener('click', startRecording);
