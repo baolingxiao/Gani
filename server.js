@@ -9,6 +9,10 @@ const port = 3000;
 app.use(express.json());
 app.use(express.static('public'));  // 托管前端文件
 
+import cors from 'cors';
+app.use(cors());
+
+
 // 初始化 OpenAI 实例
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -40,7 +44,10 @@ app.post('/api/chat', async (req, res) => {
             console.error("API 返回的错误状态码:", error.response.status);
             console.error("API 返回的错误数据:", error.response.data);
         }
-        res.status(500).send('API调用失败，请检查密钥或网络');
+        res.status(500).json({
+            error: "API调用失败，请检查密钥或网络",
+            details: error.response ? error.response.data : error.message
+        });        
     }
 });
 
