@@ -8,12 +8,10 @@ const port = 3000;
 
 app.use(express.json());
 app.use(express.static('public'));  // 托管前端文件
-
 import cors from 'cors';
 app.use(cors());
 
-
-// 初始化 OpenAI 实例
+// 初始化 OpenAI 实例 (新版用法)
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
@@ -28,30 +26,24 @@ app.post('/api/chat', async (req, res) => {
 
     try {
         console.log("调用 OpenAI API 前");
+        // 使用新版的chat.completions.create
         const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4", // 确保模型名称符合最新版本
             messages: [{ role: "user", content: message }]
         });
-        console.log("API 调用成功，返回结果: ", response);
-
+        
+        // 返回AI的回复
         const aiResponse = response.choices[0].message.content;
-        console.log("提取 AI 回复成功: ", aiResponse);
-
+        console.log("AI 回复成功: ", aiResponse);
         res.json({ reply: aiResponse });
     } catch (error) {
         console.error("OpenAI API 调用失败：", error);
-        if (error.response) {
-            console.error("API 返回的错误状态码:", error.response.status);
-            console.error("API 返回的错误数据:", error.response.data);
-        }
         res.status(500).json({
             error: "API调用失败，请检查密钥或网络",
-            details: error.response ? error.response.data : error.message
+            details: error.message
         });        
     }
 });
-
-   
 
 // 启动服务器
 app.listen(port, () => {
